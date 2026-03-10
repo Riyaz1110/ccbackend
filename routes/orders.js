@@ -8,7 +8,8 @@ const { authMiddleware, adminMiddleware } = require('../middleware/auth');
 router.post('/', authMiddleware, upload.single('payment_screenshot'), async (req, res) => {
   const client = await pool.connect();
   try {
-    const { items, total_amount, transaction_id, shipping_address } = req.body;
+    // const { items, total_amount, transaction_id, shipping_address } = req.body;
+    const { items, total_amount, transaction_id, shipping_address, mobile_number } = req.body;
     const userId = req.user.id;
     const screenshotBuffer = req.file ? req.file.buffer : null;
     const screenshotMimetype = req.file ? req.file.mimetype : null;
@@ -21,9 +22,10 @@ router.post('/', authMiddleware, upload.single('payment_screenshot'), async (req
 
     const orderResult = await client.query(
       `INSERT INTO orders 
-        (user_id, total_amount, transaction_id, shipping_address, status, payment_screenshot, screenshot_mimetype) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-      [userId, total_amount, transaction_id, shipping_address, 'Pending', screenshotBuffer, screenshotMimetype]
+(user_id, total_amount, transaction_id, shipping_address, mobile_number, status, payment_screenshot, screenshot_mimetype)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+      // [userId, total_amount, transaction_id, shipping_address, 'Pending', screenshotBuffer, screenshotMimetype]
+      [userId, total_amount, transaction_id, shipping_address, mobile_number, 'Pending', screenshotBuffer, screenshotMimetype]
     );
 
     const orderId = orderResult.rows[0].id;
@@ -55,7 +57,7 @@ router.post('/', authMiddleware, upload.single('payment_screenshot'), async (req
 router.get('/', adminMiddleware, async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT o.id, o.total_amount, o.transaction_id, o.shipping_address,
+      SELECT o.id, o.total_amount, o.transaction_id, o.shipping_address, o.mobile_number,
              o.status, o.created_at, o.screenshot_mimetype,
              encode(o.payment_screenshot, 'base64') as payment_screenshot,
              u.name as user_name, u.email as user_email
