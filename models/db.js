@@ -9,7 +9,7 @@ pool.connect((err, client, done) => {
   if (err) {
     console.error('Database connection error:', err.stack);
   } else {
-    console.log('Connected to Neon PostgreSQL');
+    console.log('Connected to Supabase PostgreSQL');
     done();
   }
 });
